@@ -92,4 +92,15 @@ class Product
 
         return $this;
     }
+
+	static function validate($obj): bool 
+	{
+		$values = ["name" => false, "description" => true, "price"=> true, "quantity"=> true];
+		foreach ($values as $key => $val)
+		{
+				if (!property_exists($obj, $key))
+						return $val;
+		}
+		return true;
+	}
 }
