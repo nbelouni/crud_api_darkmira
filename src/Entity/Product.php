@@ -30,7 +30,7 @@ class Product
 
     /**
      * @Assert\Positive
-     * @ORM\Column(type="decimal", scale=2)
+     * @ORM\Column(type="decimal", scale=2, nullable=true)
      */
     private $price;
 
@@ -95,14 +95,31 @@ class Product
 
 	static function validate($obj, ?string $method): bool 
 	{
-		$values = ["name" => false, "description" => true, "price"=> true, "quantity"=> true]; // key : property => val : return value (see mandatory fields)
+		$values = ["name" => [
+					"type" => "string",
+					"return" => false
+				],
+				"description" => [
+					"type" => "string",
+					"return" => true,
+				],
+				"price"=> [
+					"type" => "double",
+					"return" => true,
+				],
+				"quantity"=> [
+					"type" => "integer",
+					"return" => true,
+				]
+		]; 
 		if ($method === "PUT")
 			$values["id"] =  false;
 
+		$tmp = get_object_vars($obj);
 		foreach ($values as $key => $val)
 		{
-				if (!property_exists($obj, strtolower($key)))
-						return $val;
+			if (!array_key_exists($key, $tmp) || gettype($tmp[$key]) !== $val["type"])
+				return $val["return"];
 		}
 		return true;
 	}
