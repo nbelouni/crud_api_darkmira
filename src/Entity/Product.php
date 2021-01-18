@@ -93,12 +93,15 @@ class Product
         return $this;
     }
 
-	static function validate($obj): bool 
+	static function validate($obj, ?string $method): bool 
 	{
-		$values = ["name" => false, "description" => true, "price"=> true, "quantity"=> true];
+		$values = ["name" => false, "description" => true, "price"=> true, "quantity"=> true]; // key : property => val : return value (see mandatory fields)
+		if ($method === "PUT")
+			$values["id"] =  false;
+
 		foreach ($values as $key => $val)
 		{
-				if (!property_exists($obj, $key))
+				if (!property_exists($obj, strtolower($key)))
 						return $val;
 		}
 		return true;

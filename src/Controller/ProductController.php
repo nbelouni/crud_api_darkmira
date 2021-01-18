@@ -23,11 +23,10 @@ class ProductController extends AbstractController
 
 		$products = $em->getRepository(Product::class)->findAll();
 
-		$response = new Response(
+		return new Response(
 			$serializer->serialize($products, "json"),
     		Response::HTTP_OK,
 		);
-		return $response;
 	}
 
     /**
@@ -41,7 +40,8 @@ class ProductController extends AbstractController
 			if (!$content)
 				throw new Exception("Invalid json format.");
 			if (!Product::validate($content))
-				throw new Exception("Invalid Product content.");
+				throw new Exception("Invalid object property.");
+
 			$product = $serializer->denormalize($content, Product::class);
 			$em = $this->getDoctrine()->getManager();
 			$em->persist($product);
@@ -60,96 +60,90 @@ class ProductController extends AbstractController
 		);
 	}
     /**
-     * @Route("/product/{id<\d+>}", methods={"GET", "PUT", "DELETE"})
+     * @Route("/product/{id<\d+>}", methods={"GET"})
      */
-    public function product(Request $request, int $id): Response
+    public function getProduct(int $id, SerializerInterface $serializer): Response
     {
 		$em = $this->getDoctrine()->getManager();
 
-		$products = $em->getRepository(Product::class)->findOneBy(["id" => $id]);
-		// check and ?return
+		$product = $em->getRepository(Product::class)->findOneBy(["id" => $id]);
 
-		$response = new Response();
-		if ($request->isMethod('PUT'))
-		{
-			$product = json_decode($request->getContent());
-			// check validity
-			$entityManager->persist($product);
-			$entityManager->flush();
-		}
-		else if ($request->isMethod('DELETE'))
-		{
-			$entityManager->remove($product);
-			$entityManager->flush();
-		}
+		if (!$product)
+			return new Response(
+					"No product for this id : {$id}.",
+					Response::HTTP_BAD_REQUEST,
+			);
 
-		// set status
-		// set data
-		return $this->json([
-			'message' => json_encode($product),
-			'path' => 'src/Controller/ProductController.php',
-		]);
+		return new Response(
+			$serializer->serialize($product, "json"),
+    		Response::HTTP_OK,
+		);
     }
-//    /**
-//     * @Route("/product/{id<\d+>}", methods={"GET", "PUT", "DELETE"})
-//     */
-//    public function product(Request $request, int $id): Response
-//    {
-//		$em = $this->getDoctrine()->getManager();
-//
-//		$products = $em->getRepository(Product::class)->findOneBy(["id" => $id]);
-//		// check and ?return
-//
-//		$response = new Response();
-//		if ($request->isMethod('PUT'))
-//		{
-//			$product = json_decode($request->getContent());
-//			// check validity
-//			$entityManager->persist($product);
-//			$entityManager->flush();
-//		}
-//		else if ($request->isMethod('DELETE'))
-//		{
-//			$entityManager->remove($product);
-//			$entityManager->flush();
-//		}
-//
-//		// set status
-//		// set data
-//		return $this->json([
-//			'message' => json_encode($product),
-//			'path' => 'src/Controller/ProductController.php',
-//		]);
-//    }
-//    /**
-//     * @Route("/product/{id<\d+>}", methods={"GET", "PUT", "DELETE"})
-//     */
-//    public function product(Request $request, int $id): Response
-//    {
-//		$em = $this->getDoctrine()->getManager();
-//
-//		$products = $em->getRepository(Product::class)->findOneBy(["id" => $id]);
-//		// check and ?return
-//
-//		$response = new Response();
-//		if ($request->isMethod('PUT'))
-//		{
-//			$product = json_decode($request->getContent());
-//			// check validity
-//			$entityManager->persist($product);
-//			$entityManager->flush();
-//		}
-//		else if ($request->isMethod('DELETE'))
-//		{
-//			$entityManager->remove($product);
-//			$entityManager->flush();
-//		}
-//
-//		// set status
-//		// set data
-//		return $this->json([
-//			'message' => json_encode($product),
-//			'path' => 'src/Controller/ProductController.php',
-//		]);
-//    }
+
+    /**
+     * @Route("/product/{id<\d+>}", methods={"PUT"})
+     */
+    public function editProduct(Request $request, int $id, SerializerInterface $serializer): Response
+    {
+		$em = $this->getDoctrine()->getManager();
+
+		$product = $em->getRepository(Product::class)->findOneBy(["id" => $id]);
+
+		if (!$product)
+			return new Response(
+					"No product for this id : {$id}.",
+					Response::HTTP_BAD_REQUEST,
+			);
+
+		try 
+		{
+			$content = json_decode($request->getContent());
+			if (!$content)
+				throw new Exception("Invalid json format.");
+			if (!Product::validate($content, "PUT"))
+				throw new Exception("Invalid object property.");
+
+			$product = $serializer->denormalize($content, Product::class);
+			$em = $this->getDoctrine()->getManager();
+			$em->persist($product);
+			$em->flush();
+		
+		} catch (Exception $e) {
+				return new Response(
+						$e->getMessage(),
+						Response::HTTP_BAD_REQUEST,
+				);
+        }
+		return new Response(
+			"Product edited.",
+			Response::HTTP_OK,
+		);
+    }
+	
+    /**
+     * @Route("/product/{id<\d+>}", methods={"DELETE"})
+     */
+    public function removeProduct(Request $request, int $id): Response
+    {
+		$em = $this->getDoctrine()->getManager();
+
+		$product = $em->getRepository(Product::class)->findOneBy(["id" => $id]);
+		if (!$product)
+			return new Response(
+					"No product for this id : {$id}.",
+					Response::HTTP_BAD_REQUEST,
+			);
+
+
+		if ($request->isMethod('DELETE'))
+		{
+			$em->remove($product);
+			$em->flush();
+		}
+
+		return new Response(
+			"Product removed.",
+			Response::HTTP_OK,
+		);
+    }
 }
