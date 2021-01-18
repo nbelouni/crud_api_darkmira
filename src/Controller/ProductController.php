@@ -36,13 +36,10 @@ class ProductController extends AbstractController
 	{
 		try 
 		{
-			$content = json_decode($request->getContent());
-			if (!$content)
-				throw new Exception("Invalid json format.");
-			if (!Product::validate($content))
-				throw new Exception("Invalid object property.");
-
-			$product = $serializer->denormalize($content, Product::class);
+			$this->validateProductRequest($request);
+			$product = $serializer->deserialize($request->getContent(), Product::class, "json", [
+				AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => false,
+			]);
 			$em = $this->getDoctrine()->getManager();
 			$em->persist($product);
 			$em->flush();
@@ -59,6 +56,7 @@ class ProductController extends AbstractController
 			Response::HTTP_OK,
 		);
 	}
+
     /**
      * @Route("/product/{id<\d+>}", methods={"GET"})
      */
@@ -69,10 +67,12 @@ class ProductController extends AbstractController
 		$product = $em->getRepository(Product::class)->findOneBy(["id" => $id]);
 
 		if (!$product)
+		{
 			return new Response(
 					"No product for this id : {$id}.",
 					Response::HTTP_BAD_REQUEST,
 			);
+		}
 
 		return new Response(
 			$serializer->serialize($product, "json"),
@@ -97,17 +97,14 @@ class ProductController extends AbstractController
 
 		try 
 		{
-			$content = json_decode($request->getContent());
-			if (!$content)
-				throw new Exception("Invalid json format.");
-			if (!Product::validate($content, "PUT"))
-				throw new Exception("Invalid object property.");
-
-			$product = $serializer->denormalize($content, Product::class);
+			$this->validateProductRequest($request);
+			$product = $serializer->deserialize($request->getContent(), Product::class, [
+				AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => false,
+			]);
 			$em = $this->getDoctrine()->getManager();
 			$em->persist($product);
 			$em->flush();
-		
+
 		} catch (Exception $e) {
 				return new Response(
 						$e->getMessage(),
@@ -129,11 +126,12 @@ class ProductController extends AbstractController
 
 		$product = $em->getRepository(Product::class)->findOneBy(["id" => $id]);
 		if (!$product)
+		{
 			return new Response(
 					"No product for this id : {$id}.",
 					Response::HTTP_BAD_REQUEST,
 			);
-
+		}
 
 		if ($request->isMethod('DELETE'))
 		{
@@ -146,4 +144,13 @@ class ProductController extends AbstractController
 			Response::HTTP_OK,
 		);
     }
+
+	private function validateProductRequest($request) : void
+	{
+		$content = json_decode($request->getContent());
+		if (!$content)
+			throw new Exception("Invalid json format.");
+		if (!Product::validate($content, "PUT"))
+			throw new Exception("Invalid object property.");
+	}
 }
