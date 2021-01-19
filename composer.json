@@ -12,6 +12,7 @@
         "doctrine/doctrine-bundle": "^2.2",
         "doctrine/doctrine-migrations-bundle": "^3.0",
         "doctrine/orm": "^2.8",
+        "lexik/jwt-authentication-bundle": "^2.10",
         "phpdocumentor/reflection-docblock": "^5.2",
         "symfony/console": "5.2.*",
         "symfony/dotenv": "5.2.*",
@@ -21,6 +22,7 @@
         "symfony/property-access": "5.2.*",
         "symfony/property-info": "5.2.*",
         "symfony/proxy-manager-bridge": "5.2.*",
+        "symfony/security-bundle": "5.2.*",
         "symfony/serializer": "5.2.*",
         "symfony/validator": "5.2.*",
         "symfony/yaml": "5.2.*"

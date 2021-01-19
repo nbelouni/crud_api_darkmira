@@ -93,34 +93,35 @@ class Product
         return $this;
     }
 
-	static function validate($obj, ?string $method): bool 
-	{
-		$values = ["name" => [
-					"type" => "string",
-					"return" => false
-				],
-				"description" => [
-					"type" => "string",
-					"return" => true,
-				],
-				"price"=> [
-					"type" => "double",
-					"return" => true,
-				],
-				"quantity"=> [
-					"type" => "integer",
-					"return" => true,
-				]
-		]; 
-		if ($method === "PUT")
-			$values["id"] =  false;
+    public static function validate($obj, ?string $method): bool
+    {
+        $values = ["name" => [
+                    "type" => "string",
+                    "return" => false
+                ],
+                "description" => [
+                    "type" => "string",
+                    "return" => true,
+                ],
+                "price"=> [
+                    "type" => "double",
+                    "return" => true,
+                ],
+                "quantity"=> [
+                    "type" => "integer",
+                    "return" => true,
+                ]
+        ];
+        if ($method === "PUT") {
+            $values["id"] =  false;
+        }
 
-		$tmp = get_object_vars($obj);
-		foreach ($values as $key => $val)
-		{
-			if (!array_key_exists($key, $tmp) || gettype($tmp[$key]) !== $val["type"])
-				return $val["return"];
-		}
-		return true;
-	}
+        $tmp = get_object_vars($obj);
+        foreach ($values as $key => $val) {
+            if (!array_key_exists($key, $tmp) || gettype($tmp[$key]) !== $val["type"]) {
+                return $val["return"];
+            }
+        }
+        return true;
+    }
 }

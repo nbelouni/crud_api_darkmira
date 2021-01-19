@@ -19,65 +19,62 @@ class ProductController extends AbstractController
      */
     public function index(SerializerInterface $serializer): Response
     {
-		$em = $this->getDoctrine()->getManager();
+        $em = $this->getDoctrine()->getManager();
 
-		$products = $em->getRepository(Product::class)->findAll();
+        $products = $em->getRepository(Product::class)->findAll();
 
-		return new Response(
-			$serializer->serialize($products, "json"),
-    		Response::HTTP_OK,
-		);
-	}
+        return new Response(
+            $serializer->serialize($products, "json"),
+            Response::HTTP_OK,
+        );
+    }
 
     /**
      * @Route("/products", methods={"POST"})
      */
     public function addProduct(Request $request, SerializerInterface $serializer): Response
-	{
-		try 
-		{
-			$this->validateProductRequest($request);
-			$product = $serializer->deserialize($request->getContent(), Product::class, "json", [
-				AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => false,
-			]);
-			$em = $this->getDoctrine()->getManager();
-			$em->persist($product);
-			$em->flush();
-		
-		} catch (Exception $e) {
-				return new Response(
-						$e->getMessage(),
-						Response::HTTP_BAD_REQUEST,
-				);
+    {
+        try {
+            $this->validateProductRequest($request);
+            $product = $serializer->deserialize($request->getContent(), Product::class, "json", [
+                AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => false,
+            ]);
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($product);
+            $em->flush();
+        } catch (Exception $e) {
+            return new Response(
+                $e->getMessage(),
+                Response::HTTP_BAD_REQUEST,
+            );
         }
 
-		return new Response(
-			"Product added.",
-			Response::HTTP_OK,
-		);
-	}
+        return new Response(
+            "Product added.",
+            Response::HTTP_OK,
+        );
+    }
 
     /**
      * @Route("/product/{id<\d+>}", methods={"GET"})
      */
     public function getProduct(int $id, SerializerInterface $serializer): Response
     {
-		$em = $this->getDoctrine()->getManager();
+        $em = $this->getDoctrine()->getManager();
 
-		$product = $em->getRepository(Product::class)->findOneBy(["id" => $id]);
+        $product = $em->getRepository(Product::class)->findOneBy(["id" => $id]);
 
-		if (!$product)
-		{
-			return new Response(
-					"No product for this id : {$id}.",
-					Response::HTTP_BAD_REQUEST,
-			);
-		}
+        if (!$product) {
+            return new Response(
+                "No product for this id : {$id}.",
+                Response::HTTP_BAD_REQUEST,
+            );
+        }
 
-		return new Response(
-			$serializer->serialize($product, "json"),
-    		Response::HTTP_OK,
-		);
+        return new Response(
+            $serializer->serialize($product, "json"),
+            Response::HTTP_OK,
+        );
     }
 
     /**
@@ -85,72 +82,71 @@ class ProductController extends AbstractController
      */
     public function editProduct(Request $request, int $id, SerializerInterface $serializer): Response
     {
-		$em = $this->getDoctrine()->getManager();
+        $em = $this->getDoctrine()->getManager();
 
-		$product = $em->getRepository(Product::class)->findOneBy(["id" => $id]);
+        $product = $em->getRepository(Product::class)->findOneBy(["id" => $id]);
 
-		if (!$product)
-			return new Response(
-					"No product for this id : {$id}.",
-					Response::HTTP_BAD_REQUEST,
-			);
-
-		try 
-		{
-			$this->validateProductRequest($request);
-			$product = $serializer->deserialize($request->getContent(), Product::class, [
-				AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => false,
-			]);
-			$em = $this->getDoctrine()->getManager();
-			$em->persist($product);
-			$em->flush();
-
-		} catch (Exception $e) {
-				return new Response(
-						$e->getMessage(),
-						Response::HTTP_BAD_REQUEST,
-				);
+        if (!$product) {
+            return new Response(
+                "No product for this id : {$id}.",
+                Response::HTTP_BAD_REQUEST,
+            );
         }
-		return new Response(
-			"Product edited.",
-			Response::HTTP_OK,
-		);
+
+        try {
+            $this->validateProductRequest($request);
+            $product = $serializer->deserialize($request->getContent(), Product::class, [
+                AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => false,
+            ]);
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($product);
+            $em->flush();
+        } catch (Exception $e) {
+            return new Response(
+                $e->getMessage(),
+                Response::HTTP_BAD_REQUEST,
+            );
+        }
+        return new Response(
+            "Product edited.",
+            Response::HTTP_OK,
+        );
     }
-	
+    
     /**
      * @Route("/product/{id<\d+>}", methods={"DELETE"})
      */
     public function removeProduct(Request $request, int $id): Response
     {
-		$em = $this->getDoctrine()->getManager();
+        $em = $this->getDoctrine()->getManager();
 
-		$product = $em->getRepository(Product::class)->findOneBy(["id" => $id]);
-		if (!$product)
-		{
-			return new Response(
-					"No product for this id : {$id}.",
-					Response::HTTP_BAD_REQUEST,
-			);
-		}
+        $product = $em->getRepository(Product::class)->findOneBy(["id" => $id]);
+        if (!$product) {
+            return new Response(
+                "No product for this id : {$id}.",
+                Response::HTTP_BAD_REQUEST,
+            );
+        }
 
-		if ($request->isMethod('DELETE'))
-		{
-			$em->remove($product);
-			$em->flush();
-		}
+        if ($request->isMethod('DELETE')) {
+            $em->remove($product);
+            $em->flush();
+        }
 
-		return new Response(
-			"Product removed.",
-			Response::HTTP_OK,
-		);
+        return new Response(
+            "Product removed.",
+            Response::HTTP_OK,
+        );
     }
 
-	private function validateProductRequest($request) : void
-	{
-		$content = json_decode($request->getContent());
-		if (!$content)
-			throw new Exception("Invalid json format.");
-		if (!Product::validate($content, "PUT"))
-			throw new Exception("Invalid object property.");
-	}
+    private function validateProductRequest($request) : void
+    {
+        $content = json_decode($request->getContent());
+        if (!$content) {
+            throw new Exception("Invalid json format.");
+        }
+        if (!Product::validate($content, "PUT")) {
+            throw new Exception("Invalid object property.");
+        }
+    }
 }
