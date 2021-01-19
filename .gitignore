@@ -6,9 +6,12 @@
 /public/bundles/
 /var/
 /vendor/
-*.swp
+/tools
 ###< symfony/framework-bundle ###
 
 ###> lexik/jwt-authentication-bundle ###
 /config/jwt/*.pem
 ###< lexik/jwt-authentication-bundle ###
+#
+*.swp
+.php_cs.cache
